@@ -512,6 +512,9 @@ enum ath10k_fw_features {
 	/* Firmware Supports Adaptive CCA*/
 	ATH10K_FW_FEATURE_SUPPORTS_ADAPTIVE_CCA = 11,
 
+	/* Firmware from Candela Technologies, enables more VIFs, etc */
+	ATH10K_FW_FEATURE_WMI_10X_CT = 31,
+
 	/* keep last */
 	ATH10K_FW_FEATURE_COUNT,
 };
