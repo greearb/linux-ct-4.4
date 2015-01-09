@@ -1202,6 +1202,8 @@ enum wmi_10x_cmd_id {
 	WMI_10X_GPIO_CONFIG_CMDID,
 	WMI_10X_GPIO_OUTPUT_CMDID,
 
+	WMI_NOP = WMI_10X_END_CMDID - 100, /* CT only:  wmi transport keep-alive, basically */
+
 	WMI_10X_PDEV_UTF_CMDID = WMI_10X_END_CMDID - 1,
 };
 
@@ -6412,5 +6414,10 @@ size_t ath10k_wmi_fw_stats_num_vdevs(struct list_head *head);
 void ath10k_wmi_10_4_op_fw_stats_fill(struct ath10k *ar,
 				      struct ath10k_fw_stats *fw_stats,
 				      char *buf);
+
+#ifdef CONFIG_ATH10K_DEBUG
+/* CT Firmware only */
+int ath10k_wmi_request_nop(struct ath10k *ar);
+#endif
 
 #endif /* _WMI_H_ */
