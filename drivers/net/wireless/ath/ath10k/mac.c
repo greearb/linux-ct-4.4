@@ -3374,8 +3374,9 @@ static void ath10k_mac_tx(struct ath10k *ar, struct sk_buff *skb)
 	}
 
 	if (ret) {
-		ath10k_warn(ar, "failed to transmit packet, dropping: %d\n",
-			    ret);
+		if (net_ratelimit())
+			ath10k_warn(ar, "failed to transmit packet, dropping: %d\n",
+				    ret);
 		ieee80211_free_txskb(ar->hw, skb);
 	}
 }
