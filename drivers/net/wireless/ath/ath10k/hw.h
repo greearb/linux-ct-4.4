@@ -600,6 +600,7 @@ enum ath10k_hw_rate_cck {
 #define PCIE_INTR_ENABLE_ADDRESS		0x0008
 #define PCIE_INTR_CAUSE_ADDRESS			0x000c
 #define PCIE_INTR_CLR_ADDRESS			ar->regs->pcie_intr_clr_address
+#define SCRATCH_2_ADDRESS                       0x002c
 #define SCRATCH_3_ADDRESS			ar->regs->scratch_3_address
 #define CPU_INTR_ADDRESS			0x0010
 
@@ -609,6 +610,10 @@ enum ath10k_hw_rate_cck {
 #define FW_INDICATOR_ADDRESS			ar->regs->fw_indicator_address
 #define FW_IND_EVENT_PENDING			1
 #define FW_IND_INITIALIZED			2
+
+/* CT firmware only */
+#define FW_IND_SCRATCH2_WR      (1<<14) /* scratch2 has data written to it */
+#define FW_IND_SCRATCH2_RD      (1<<15) /* scratch2 has been read (by host) */
 
 /* HOST_REG interrupt from firmware */
 #define PCIE_INTR_FIRMWARE_MASK			ar->regs->pcie_intr_fw_mask
