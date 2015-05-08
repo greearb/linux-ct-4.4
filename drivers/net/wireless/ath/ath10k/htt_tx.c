@@ -450,6 +450,7 @@ int ath10k_htt_mgmt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 	int len = 0;
 	int msdu_id = -1;
 	int res;
+	int skb_len;
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)msdu->data;
 	bool limit_mgmt_desc = false;
 	bool is_probe_resp = false;
@@ -483,7 +484,8 @@ int ath10k_htt_mgmt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 		goto err_free_msdu_id;
 	}
 
-	skb_cb->paddr = dma_map_single(dev, msdu->data, msdu->len,
+	skb_len = msdu->len;
+	skb_cb->paddr = dma_map_single(dev, msdu->data, skb_len,
 				       DMA_TO_DEVICE);
 	res = dma_mapping_error(dev, skb_cb->paddr);
 	if (res) {
@@ -497,17 +499,21 @@ int ath10k_htt_mgmt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 
 	cmd->hdr.msg_type         = HTT_H2T_MSG_TYPE_MGMT_TX;
 	cmd->mgmt_tx.msdu_paddr = __cpu_to_le32(ATH10K_SKB_CB(msdu)->paddr);
-	cmd->mgmt_tx.len        = __cpu_to_le32(msdu->len);
+	cmd->mgmt_tx.len        = __cpu_to_le32(skb_len);
 	cmd->mgmt_tx.desc_id    = __cpu_to_le32(msdu_id);
 	cmd->mgmt_tx.vdev_id    = __cpu_to_le32(vdev_id);
 	memcpy(cmd->mgmt_tx.hdr, msdu->data,
-	       min_t(int, msdu->len, HTT_MGMT_FRM_HDR_DOWNLOAD_LEN));
+	       min_t(int, skb_len, HTT_MGMT_FRM_HDR_DOWNLOAD_LEN));
 
 	skb_cb->htt.txbuf = NULL;
 
 	res = ath10k_htc_send(&htt->ar->htc, htt->eid, txdesc);
 	if (res)
 		goto err_unmap_msdu;
+
+#ifdef CONFIG_ATH10K_DEBUGFS
+	ar->debug.tx_bytes += skb_len;
+#endif
 
 	return 0;
 
@@ -539,6 +545,7 @@ int ath10k_htt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 	int res;
 	u8 flags0 = 0;
 	u16 msdu_id, flags1 = 0;
+	int skb_len;
 	u32 frags_paddr = 0;
 	struct htt_msdu_ext_desc *ext_desc = NULL;
 	bool limit_mgmt_desc = false;
@@ -684,13 +691,14 @@ int ath10k_htt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 	skb_cb->htt.txbuf->cmd_tx.peerid = __cpu_to_le16(HTT_INVALID_PEERID);
 	skb_cb->htt.txbuf->cmd_tx.freq = __cpu_to_le16(skb_cb->htt.freq);
 
+	skb_len = msdu->len;
 	trace_ath10k_htt_tx(ar, msdu_id, msdu->len, vdev_id, tid);
 	ath10k_dbg(ar, ATH10K_DBG_HTT,
 		   "htt tx flags0 %hhu flags1 %hu len %d id %hu frags_paddr %08x, msdu_paddr %08x vdev %hhu tid %hhu freq %hu\n",
-		   flags0, flags1, msdu->len, msdu_id, frags_paddr,
+		   flags0, flags1, skb_len, msdu_id, frags_paddr,
 		   (u32)skb_cb->paddr, vdev_id, tid, skb_cb->htt.freq);
 	ath10k_dbg_dump(ar, ATH10K_DBG_HTT_DUMP, NULL, "htt tx msdu: ",
-			msdu->data, msdu->len);
+			msdu->data, skb_len);
 	trace_ath10k_tx_hdr(ar, msdu->data, msdu->len);
 	trace_ath10k_tx_payload(ar, msdu->data, msdu->len);
 
@@ -714,6 +722,10 @@ int ath10k_htt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 			       sg_items, ARRAY_SIZE(sg_items));
 	if (res)
 		goto err_unmap_msdu;
+
+#ifdef CONFIG_ATH10K_DEBUGFS
+	ar->debug.tx_bytes += skb_len;
+#endif
 
 	return 0;
 
