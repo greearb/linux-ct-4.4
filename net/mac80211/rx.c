@@ -3175,6 +3175,7 @@ static void ieee80211_rx_handlers(struct ieee80211_rx_data *rx,
 {
 	ieee80211_rx_result res = RX_DROP_MONITOR;
 	struct sk_buff *skb;
+	//struct ieee80211_local *local = rx->local;
 
 #define CALL_RXH(rxh)			\
 	do {				\
@@ -3182,6 +3183,8 @@ static void ieee80211_rx_handlers(struct ieee80211_rx_data *rx,
 		if (res != RX_CONTINUE)	\
 			goto rxh_next;  \
 	} while (0);
+
+	//wiphy_debug(local->hw.wiphy, "ieee80211-rx-handlers\n");
 
 	/* Lock here to avoid hitting all of the data used in the RX
 	 * path (e.g. key data, station data, ...) concurrently when
@@ -3192,6 +3195,9 @@ static void ieee80211_rx_handlers(struct ieee80211_rx_data *rx,
 	spin_lock_bh(&rx->local->rx_path_lock);
 
 	while ((skb = __skb_dequeue(frames))) {
+
+		//wiphy_debug(local->hw.wiphy, "ieee80211-rx-handlers, skb len: %d\n", skb->len);
+
 		/*
 		 * all the other fields are valid across frames
 		 * that belong to an aMPDU since they are on the
@@ -3237,8 +3243,11 @@ static void ieee80211_invoke_rx_handlers(struct ieee80211_rx_data *rx)
 {
 	struct sk_buff_head reorder_release;
 	ieee80211_rx_result res = RX_DROP_MONITOR;
+	//struct ieee80211_local *local = rx->local;
 
 	__skb_queue_head_init(&reorder_release);
+
+	//wiphy_debug(local->hw.wiphy, "ieee80211-invoke-rx-handlers, skb len: %d\n", rx->skb->len);
 
 #define CALL_RXH(rxh)			\
 	do {				\
@@ -3311,6 +3320,7 @@ static bool ieee80211_accept_frame(struct ieee80211_rx_data *rx)
 	struct ieee80211_rx_status *status = IEEE80211_SKB_RXCB(skb);
 	u8 *bssid = ieee80211_get_bssid(hdr, skb->len, sdata->vif.type);
 	int multicast = is_multicast_ether_addr(hdr->addr1);
+	//struct ieee80211_local *local = rx->local;
 
 	switch (sdata->vif.type) {
 	case NL80211_IFTYPE_STATION:
@@ -3320,18 +3330,29 @@ static bool ieee80211_accept_frame(struct ieee80211_rx_data *rx)
 			return true;
 		return ether_addr_equal(sdata->vif.addr, hdr->addr1);
 	case NL80211_IFTYPE_ADHOC:
-		if (!bssid)
+		if (!bssid) {
+			//wiphy_debug(local->hw.wiphy, "Error, no bssid.\n");
 			return false;
+		}
 		if (ether_addr_equal(sdata->vif.addr, hdr->addr2) ||
-		    ether_addr_equal(sdata->u.ibss.bssid, hdr->addr2))
+		    ether_addr_equal(sdata->u.ibss.bssid, hdr->addr2)) {
+			//wiphy_debug(local->hw.wiphy, "addrs not equal, vid.addr: %pM  addr2: %pM bssid: %pM\n",
+			//       sdata->vif.addr, hdr->addr2, sdata->u.ibss.bssid);
 			return false;
+		}
 		if (ieee80211_is_beacon(hdr->frame_control))
 			return true;
-		if (!ieee80211_bssid_match(bssid, sdata->u.ibss.bssid))
+		if (!ieee80211_bssid_match(bssid, sdata->u.ibss.bssid)) {
+			//wiphy_debug(local->hw.wiphy, "bssid match failed, bssid: %pM  %pM\n",
+			//       bssid, sdata->u.ibss.bssid);
 			return false;
+		}
 		if (!multicast &&
-		    !ether_addr_equal(sdata->vif.addr, hdr->addr1))
+		    !ether_addr_equal(sdata->vif.addr, hdr->addr1)) {
+			//wiphy_debug(local->hw.wiphy, "Addr no equal: %pM  addr1: %pM\n",
+			//       sdata->vif.addr, hdr->addr1);
 			return false;
+		}
 		if (!rx->sta) {
 			int rate_idx;
 			if (status->flag & (RX_FLAG_HT | RX_FLAG_VHT))
@@ -3428,8 +3449,13 @@ static bool ieee80211_prepare_and_rx_handle(struct ieee80211_rx_data *rx,
 
 	rx->skb = skb;
 
-	if (!ieee80211_accept_frame(rx))
+	//wiphy_debug(local->hw.wiphy, "ieee80211-prepare-and-rx-handle, dev: %s skb len: %d\n",
+	//     	      sdata->dev->name, skb->len);
+
+	if (!ieee80211_accept_frame(rx)) {
+		//wiphy_debug(local->hw.wiphy, "%s: Cannot accept frame.\n", sdata->dev->name);
 		return false;
+	}
 
 	if (!consume) {
 		skb = skb_copy(skb, GFP_ATOMIC);
@@ -3465,6 +3491,8 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
 	struct sta_info *sta, *prev_sta;
 	struct rhash_head *tmp;
 	int err = 0;
+
+	//wiphy_debug(local->hw.wiphy, "ieee80211-rx-handle-pkt, skb len: %d\n", skb->len);
 
 	fc = ((struct ieee80211_hdr *)skb->data)->frame_control;
 	memset(&rx, 0, sizeof(rx));
@@ -3581,6 +3609,8 @@ void ieee80211_rx_napi(struct ieee80211_hw *hw, struct sk_buff *skb,
 	struct ieee80211_rx_status *status = IEEE80211_SKB_RXCB(skb);
 
 	WARN_ON_ONCE(softirq_count() == 0);
+
+	//wiphy_debug(local->hw.wiphy, "ieee80211-rx, skb len: %d\n", skb->len);
 
 	if (WARN_ON(status->band >= IEEE80211_NUM_BANDS))
 		goto drop;
