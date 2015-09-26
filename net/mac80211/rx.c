@@ -3345,7 +3345,14 @@ static bool ieee80211_accept_frame(struct ieee80211_rx_data *rx)
 		if (!ieee80211_bssid_match(bssid, sdata->u.ibss.bssid)) {
 			//wiphy_debug(local->hw.wiphy, "bssid match failed, bssid: %pM  %pM\n",
 			//       bssid, sdata->u.ibss.bssid);
-			return false;
+			/** ath10k seems to zero the BSSID when using AMSDU sub-frames
+			 * As far as I can tell, this is a hardware issue and I see no way to resolve
+			 * it in firmware.
+			 * Allow these packets as work-around.
+			 * I am not sure whether this could cause problems in some setups or not.
+			 */
+			if (! is_zero_ether_addr(bssid))
+				return false;
 		}
 		if (!multicast &&
 		    !ether_addr_equal(sdata->vif.addr, hdr->addr1)) {
