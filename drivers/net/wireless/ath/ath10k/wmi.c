@@ -1558,7 +1558,7 @@ static bool ath10k_ok_skip_ch_reservation(struct ath10k *ar, u32 vdev_id)
 	struct ath10k_vif *arvif;
 	bool rv = false;
 
-	if (! test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features))
+	if (! test_bit(ATH10K_FW_FEATURE_SKIP_CH_RES_CT, ar->fw_features))
 		return rv;
 
 	list_for_each_entry(arvif, &ar->arvifs, list) {
@@ -6025,7 +6025,7 @@ int ath10k_wmi_request_nop(struct ath10k *ar)
 	struct wmi_request_nop_cmd *cmd;
 	struct sk_buff *skb;
 
-	if (! test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features))
+	if (! test_bit(ATH10K_FW_FEATURE_NOP_CT, ar->fw_features))
 		return 0;
 
 	skb = ath10k_wmi_alloc_skb(ar, sizeof(*cmd));
@@ -7408,7 +7408,7 @@ int ath10k_wmi_pdev_set_special(struct ath10k *ar, u32 id, u32 val)
 	struct wmi_pdev_set_special_cmd *cmd;
 	struct sk_buff *skb;
 
-	if (!test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
+	if (!test_bit(ATH10K_FW_FEATURE_SET_SPECIAL_CT, ar->fw_features)) {
 		ath10k_warn(ar, "Only CT firmware (built after June 26, 2015) supports this method of setting thresh62_ext.\n");
 		return -ENOTSUPP;
 	}

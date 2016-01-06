@@ -215,6 +215,13 @@ static const char *const ath10k_core_fw_feature_str[] = {
 	[ATH10K_FW_FEATURE_CT_RXSWCRYPT] = "rxswcrypt-CT",
 	[ATH10K_FW_FEATURE_HAS_TXSTATUS_NOACK] = "txstatus-noack",
 	[ATH10K_FW_FEATURE_CT_RATEMASK] = "ratemask-CT",
+	[ATH10K_FW_FEATURE_SET_SPECIAL_CT] = "set-special-CT",
+	[ATH10K_FW_FEATURE_REGDUMP_CT] = "regdump-CT",
+	[ATH10K_FW_FEATURE_TXRATE_CT] = "txrate-CT",
+	[ATH10K_FW_FEATURE_FLUSH_ALL_CT] = "flush-all-CT",
+	[ATH10K_FW_FEATURE_PINGPONG_READ_CT] = "pingpong-CT",
+	[ATH10K_FW_FEATURE_SKIP_CH_RES_CT] = "ch-regs-CT",
+	[ATH10K_FW_FEATURE_NOP_CT] = "nop-CT",
 };
 
 static unsigned int ath10k_core_get_fw_feature_str(char *buf,
@@ -912,18 +919,6 @@ out:
 		goto err;
 	}
 
-	/* Only CT firmware has BSS stuff, so we can use this to fix up
-	 * flags for backwards and forwards compat with older/newer CT firmware.
-	 * (upstream stole some bits it was using)
-	 */
-	if (ar->fw.rom_bss_addr) {
-		if (test_bit(5, ar->fw_features))
-			__set_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features);
-
-		if (test_bit(6, ar->fw_features))
-			__set_bit(ATH10K_FW_FEATURE_CT_RXSWCRYPT, ar->fw_features);
-	}
-
 	return 0;
 
 err:
@@ -1239,6 +1234,19 @@ fw_ie_bss_info_ct:
 		data += ie_len;
 	}
 
+	/* Only CT firmware has BSS stuff, so we can use this to fix up
+	 * flags for backwards and forwards compat with older/newer CT firmware.
+	 * (upstream stole some bits it was using)
+	 */
+	if (ar->fw.rom_bss_addr) {
+		if (test_bit(5, ar->fw_features))
+			__set_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features);
+
+		if (test_bit(6, ar->fw_features))
+			__set_bit(ATH10K_FW_FEATURE_CT_RXSWCRYPT, ar->fw_features);
+	}
+
+
 	if (!ar->firmware_data || !ar->firmware_len) {
 		ath10k_warn(ar, "No ATH10K_FW_IE_FW_IMAGE found from '%s/%s', skipping\n",
 			    ar->hw_params.fw.dir, name);
@@ -1473,6 +1481,23 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 		ath10k_err(ar, "unsupported WMI OP version (max %d): %d\n",
 			   ATH10K_FW_WMI_OP_VERSION_MAX, ar->wmi.op_version);
 		return -EINVAL;
+	}
+
+	/* CT 10.1 firmware slowly added features, all mostly under one feature
+	 * flag.  But, for 10.2, I need to add features at a time so that we can
+	 * maintain ability to bisect the firmware and to have fine-grained support
+	 * for enabling/disabling firmware features.  For backwards-compt with 10.1
+	 * firmware, set all the flags here.
+	 */
+	if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features) &&
+	    (ar->wmi.op_version == ATH10K_FW_WMI_OP_VERSION_10_1)) {
+		__set_bit(ATH10K_FW_FEATURE_SET_SPECIAL_CT, ar->fw_features);
+		__set_bit(ATH10K_FW_FEATURE_REGDUMP_CT, ar->fw_features);
+		__set_bit(ATH10K_FW_FEATURE_TXRATE_CT, ar->fw_features);
+		__set_bit(ATH10K_FW_FEATURE_FLUSH_ALL_CT, ar->fw_features);
+		__set_bit(ATH10K_FW_FEATURE_PINGPONG_READ_CT, ar->fw_features);
+		__set_bit(ATH10K_FW_FEATURE_SKIP_CH_RES_CT, ar->fw_features);
+		__set_bit(ATH10K_FW_FEATURE_NOP_CT, ar->fw_features);
 	}
 
 	ar->wmi.rx_decap_mode = ATH10K_HW_TXRX_NATIVE_WIFI;
@@ -1793,7 +1818,7 @@ int ath10k_core_start(struct ath10k *ar, enum ath10k_firmware_mode mode)
 	if (status)
 		goto err_hif_stop;
 
-	if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
+	if (test_bit(ATH10K_FW_FEATURE_SET_SPECIAL_CT, ar->fw_features)) {
 		/* Apply user-supplied configuration changes. */
 		/* Don't worry about failures..not much we can do, and not worth failing init even
 		 * if this fails.
