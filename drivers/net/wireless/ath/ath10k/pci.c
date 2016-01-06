@@ -1445,7 +1445,7 @@ static int ath10k_ct_fw_crash_regs_harder(struct ath10k *ar,
 	int q;
 #define MAX_SPIN_TRIES 1000000
 
-	if (!test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
+	if (!test_bit(ATH10K_FW_FEATURE_PINGPONG_READ_CT, ar->fw_features)) {
 		return -EINVAL;
 	}
 
