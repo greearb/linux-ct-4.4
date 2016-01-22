@@ -153,7 +153,6 @@ EXPORT_SYMBOL(ath10k_info);
 void ath10k_debug_print_hwfw_info(struct ath10k *ar)
 {
 	char fw_features[256] = {};
-	char boardinfo[100];
 
 	ath10k_core_get_fw_features_str(ar, fw_features, sizeof(fw_features));
 
