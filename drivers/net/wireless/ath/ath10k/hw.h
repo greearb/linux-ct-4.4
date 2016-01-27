@@ -627,6 +627,7 @@ enum ath10k_hw_4addr_pad {
 #define FW_INDICATOR_ADDRESS			ar->regs->fw_indicator_address
 #define FW_IND_EVENT_PENDING			1
 #define FW_IND_INITIALIZED			2
+#define FW_IND_HOST_READY			0x80000000
 
 /* CT firmware only */
 #define FW_IND_SCRATCH2_WR      (1<<14) /* scratch2 has data written to it */
