@@ -766,7 +766,10 @@ struct htt_data_tx_completion {
 		} __packed;
 	} __packed;
 	u8 num_msdus;
-	u8 rsvd0;
+	u8 flag_ack_rssi_filled:1, /* For 10.4 firmware */
+	   flag_reserved:5,
+	   flag_tx_rate_filled:1, /* CT firmware only currently */
+	   flag_reserved2:1;
 	__le16 msdus[0]; /* variable length based on %num_msdus */
 } __packed;
 
@@ -1557,6 +1560,7 @@ struct htt_tx_done {
 	u16 msdu_id;
 	u8 tx_rate_code; /* CT firmware only, see firmware ar_desc_wifi_ip01.h (search for 0x44) */
 	u8 tx_rate_flags; /* CT firmware only, see flag defs above */
+	s16 ack_rssi;
 	bool discard;
 	bool no_ack;
 	bool success;
