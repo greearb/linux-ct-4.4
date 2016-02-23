@@ -1912,8 +1912,13 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 	case ATH10K_FW_WMI_OP_VERSION_10_2_4:
 		ar->bmiss_offload_max_vdev = TARGET_10X_BMISS_OFFLOAD_MAX_VDEV;
 		ar->skid_limit = TARGET_10X_AST_SKID_LIMIT;
-		ar->max_num_peers = TARGET_10X_NUM_PEERS;
-		ar->max_num_stations = TARGET_10X_NUM_STATIONS;
+		if (test_bit(WMI_SERVICE_PEER_STATS, ar->wmi.svc_map)) {
+			ar->max_num_peers = TARGET_10X_TX_STATS_NUM_PEERS;
+			ar->max_num_stations = TARGET_10X_TX_STATS_NUM_STATIONS;
+		} else {
+			ar->max_num_peers = TARGET_10X_NUM_PEERS;
+			ar->max_num_stations = TARGET_10X_NUM_STATIONS;
+		}
 		ar->max_num_vdevs = TARGET_10X_NUM_VDEVS;
 		ar->htt.max_num_pending_tx = TARGET_10X_NUM_MSDU_DESC;
 		ar->fw_stats_req_mask = WMI_STAT_PEER;
