@@ -379,7 +379,10 @@ enum ath10k_hw_4addr_pad {
 #define TARGET_10X_MAC_AGGR_DELIM		0
 #define TARGET_10X_AST_SKID_LIMIT		128
 #define TARGET_10X_NUM_STATIONS			128
+#define TARGET_10X_TX_STATS_NUM_STATIONS	118
 #define TARGET_10X_NUM_PEERS			((TARGET_10X_NUM_STATIONS) + \
+						 (TARGET_10X_NUM_VDEVS))
+#define TARGET_10X_TX_STATS_NUM_PEERS		((TARGET_10X_TX_STATS_NUM_STATIONS) + \
 						 (TARGET_10X_NUM_VDEVS))
 
 /* Over-rides for Candela Technologies firmware */
@@ -391,6 +394,7 @@ enum ath10k_hw_4addr_pad {
 /* Related to HTC buffers */
 /* return any credit immediately */
 #define TARGET_HTC_MAX_PENDING_TXCREDITS_RPTS   1
+
 /* 8 ctrl buffers for sending info to host */
 #define TARGET_HTC_MAX_CONTROL_BUFFERS          6
 /* Only CT firmware will actually use this value.  Each buffer is close to 2K
@@ -404,6 +408,8 @@ enum ath10k_hw_4addr_pad {
 #define TARGET_10X_NUM_TIDS_MAX			256
 #define TARGET_10X_NUM_TIDS			min((TARGET_10X_NUM_TIDS_MAX), \
 						    (TARGET_10X_NUM_PEERS) * 2)
+#define TARGET_10X_TX_STATS_NUM_TIDS		min((TARGET_10X_NUM_TIDS_MAX), \
+						    (TARGET_10X_TX_STATS_NUM_PEERS) * 2)
 #define TARGET_10X_TX_CHAIN_MASK		(BIT(0) | BIT(1) | BIT(2))
 #define TARGET_10X_RX_CHAIN_MASK		(BIT(0) | BIT(1) | BIT(2))
 #define TARGET_10X_RX_TIMEOUT_LO_PRI		100
