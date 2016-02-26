@@ -959,6 +959,7 @@ struct ath10k {
 	u32 num_ratectrl_objs;
 	u32 skid_limit;
 	int eeprom_regdom;
+	char current_fwname[100]; /* Name of firmware file we last loaded. */
 
 	struct work_struct svc_rdy_work;
 	struct sk_buff *svc_rdy_skb;
