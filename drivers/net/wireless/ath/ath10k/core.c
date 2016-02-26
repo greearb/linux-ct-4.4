@@ -237,6 +237,7 @@ static const char *const ath10k_core_fw_feature_str[] = {
 	[ATH10K_FW_FEATURE_NOP_CT] = "nop-CT",
 	[ATH10K_FW_FEATURE_HTT_MGT_CT] = "htt-mgt-CT",
 	[ATH10K_FW_FEATURE_SET_SPECIAL_CT] = "set-special-CT",
+	[ATH10K_FW_FEATURE_NO_BMISS_CT] = "no-bmiss-CT",
 };
 
 static unsigned int ath10k_core_get_fw_feature_str(char *buf,
@@ -946,6 +947,12 @@ start_again:
 			if (kstrtol(val, 0, &t) == 0) {
 				ar->fwcfg.regdom = t;
 				ar->fwcfg.flags |= ATH10K_FWCFG_REGDOM;
+			}
+		}
+		else if (strcasecmp(filename, "bmiss_vdevs") == 0) {
+			if (kstrtol(val, 0, &t) == 0) {
+				ar->fwcfg.bmiss_vdevs = t;
+				ar->fwcfg.flags |= ATH10K_FWCFG_BMISS_VDEVS;
 			}
 		}
 		else {
@@ -1843,6 +1850,7 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 
 	switch (ar->wmi.op_version) {
 	case ATH10K_FW_WMI_OP_VERSION_MAIN:
+		ar->bmiss_offload_max_vdev = TARGET_BMISS_OFFLOAD_MAX_VDEV;
 		ar->skid_limit = TARGET_AST_SKID_LIMIT;
 		ar->max_num_peers = TARGET_NUM_PEERS;
 		ar->max_num_stations = TARGET_NUM_STATIONS;
@@ -1853,6 +1861,7 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 		ar->max_spatial_stream = WMI_MAX_SPATIAL_STREAM;
 		break;
 	case ATH10K_FW_WMI_OP_VERSION_10_1:
+		ar->bmiss_offload_max_vdev = TARGET_10X_BMISS_OFFLOAD_MAX_VDEV;
 		ar->skid_limit = TARGET_10X_AST_SKID_LIMIT;
 		if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
 			ar->skid_limit = TARGET_10X_AST_SKID_LIMIT_CT;
@@ -1871,6 +1880,7 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 		break;
 	case ATH10K_FW_WMI_OP_VERSION_10_2:
 	case ATH10K_FW_WMI_OP_VERSION_10_2_4:
+		ar->bmiss_offload_max_vdev = TARGET_10X_BMISS_OFFLOAD_MAX_VDEV;
 		ar->skid_limit = TARGET_10X_AST_SKID_LIMIT;
 		ar->max_num_peers = TARGET_10X_NUM_PEERS;
 		ar->max_num_stations = TARGET_10X_NUM_STATIONS;
@@ -1880,6 +1890,7 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 		ar->max_spatial_stream = WMI_MAX_SPATIAL_STREAM;
 		break;
 	case ATH10K_FW_WMI_OP_VERSION_TLV:
+		ar->bmiss_offload_max_vdev = TARGET_10X_BMISS_OFFLOAD_MAX_VDEV;
 		ar->max_num_peers = TARGET_TLV_NUM_PEERS;
 		ar->max_num_stations = TARGET_TLV_NUM_STATIONS;
 		ar->max_num_vdevs = TARGET_TLV_NUM_VDEVS;
@@ -1891,6 +1902,7 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 		ar->max_spatial_stream = WMI_MAX_SPATIAL_STREAM;
 		break;
 	case ATH10K_FW_WMI_OP_VERSION_10_4:
+		ar->bmiss_offload_max_vdev = TARGET_10_4_BMISS_OFFLOAD_MAX_VDEV;
 		ar->skid_limit = TARGET_10_4_AST_SKID_LIMIT;
 		ar->max_num_peers = TARGET_10_4_NUM_PEERS;
 		ar->max_num_stations = TARGET_10_4_NUM_STATIONS;
@@ -1937,6 +1949,14 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 		ar->skid_limit = ar->fwcfg.skid_limit;
 	if (ar->fwcfg.flags & ATH10K_FWCFG_REGDOM)
 		ar->eeprom_regdom = ar->fwcfg.regdom;
+	if (ar->fwcfg.flags & ATH10K_FWCFG_BMISS_VDEVS)
+		ar->bmiss_offload_max_vdev = ar->fwcfg.bmiss_vdevs;
+
+	/* Some firmware may compile out beacon-miss logic to save firmware RAM
+	 * and instruction RAM.
+	 */
+	if (test_bit(ATH10K_FW_FEATURE_NO_BMISS_CT, ar->fw_features))
+		ar->bmiss_offload_max_vdev = 0;
 
 	return 0;
 }
