@@ -5433,8 +5433,7 @@ static struct sk_buff *ath10k_wmi_op_gen_init(struct ath10k *ar)
 	config.scan_max_pending_reqs =
 		__cpu_to_le32(TARGET_SCAN_MAX_PENDING_REQS);
 
-	config.bmiss_offload_max_vdev =
-		__cpu_to_le32(TARGET_BMISS_OFFLOAD_MAX_VDEV);
+	config.bmiss_offload_max_vdev = __cpu_to_le32(ar->bmiss_offload_max_vdev);
 
 	config.roam_offload_max_vdev =
 		__cpu_to_le32(TARGET_ROAM_OFFLOAD_MAX_VDEV);
@@ -5498,8 +5497,8 @@ static struct sk_buff *ath10k_wmi_10_1_op_gen_init(struct ath10k *ar)
 	config.roam_offload_max_ap_profiles =
 		__cpu_to_le32(TARGET_10X_ROAM_OFFLOAD_MAX_AP_PROFILES);
 	config.num_peer_keys = __cpu_to_le32(TARGET_10X_NUM_PEER_KEYS);
-	config.bmiss_offload_max_vdev =
-		__cpu_to_le32(TARGET_10X_BMISS_OFFLOAD_MAX_VDEV);
+
+	config.bmiss_offload_max_vdev = __cpu_to_le32(ar->bmiss_offload_max_vdev);
 
 	if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
 		if (test_bit(ATH10K_FW_FEATURE_CT_RXSWCRYPT, ar->fw_features) &&
@@ -5601,8 +5600,7 @@ static struct sk_buff *ath10k_wmi_10_2_op_gen_init(struct ath10k *ar)
 	config.roam_offload_max_ap_profiles =
 		__cpu_to_le32(TARGET_10X_ROAM_OFFLOAD_MAX_AP_PROFILES);
 	config.num_peer_keys = __cpu_to_le32(TARGET_10X_NUM_PEER_KEYS);
-	config.bmiss_offload_max_vdev =
-		__cpu_to_le32(TARGET_10X_BMISS_OFFLOAD_MAX_VDEV);
+	config.bmiss_offload_max_vdev = __cpu_to_le32(ar->bmiss_offload_max_vdev);
 
 	if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
 		if (test_bit(ATH10K_FW_FEATURE_CT_RXSWCRYPT, ar->fw_features) &&
@@ -5718,8 +5716,7 @@ static struct sk_buff *ath10k_wmi_10_4_op_gen_init(struct ath10k *ar)
 	config.roam_offload_max_ap_profiles =
 			__cpu_to_le32(TARGET_10_4_ROAM_OFFLOAD_MAX_PROFILES);
 	config.num_peer_keys  = __cpu_to_le32(TARGET_10_4_NUM_PEER_KEYS);
-	config.bmiss_offload_max_vdev =
-			__cpu_to_le32(TARGET_10_4_BMISS_OFFLOAD_MAX_VDEV);
+	config.bmiss_offload_max_vdev = __cpu_to_le32(ar->bmiss_offload_max_vdev);
 	config.qwrap_config = __cpu_to_le32(TARGET_10_4_QWRAP_CONFIG);
 
 	if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
