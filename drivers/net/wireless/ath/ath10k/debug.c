@@ -307,6 +307,42 @@ static const struct file_operations fops_wmi_services = {
 	.owner = THIS_MODULE,
 	.llseek = default_llseek,
 };
+static ssize_t ath10k_read_fwinfo(struct file *file,
+				  char __user *user_buf,
+				  size_t count, loff_t *ppos)
+{
+	struct ath10k *ar = file->private_data;
+	char *buf;
+	unsigned int len = 0, buf_len = 1000;
+	ssize_t ret_cnt;
+
+	buf = kzalloc(buf_len, GFP_KERNEL);
+	if (!buf)
+		return -ENOMEM;
+
+	mutex_lock(&ar->conf_mutex);
+
+	if (len > buf_len)
+		len = buf_len;
+
+	len = snprintf(buf, 1000, "directory: %s\nfirmware:  %s\nfwcfg: fwcfg-%s-%s.txt\n",
+		       ar->hw_params.fw.dir, ar->current_fwname,
+		       ath10k_bus_str(ar->hif.bus), dev_name(ar->dev));
+
+	ret_cnt = simple_read_from_buffer(user_buf, count, ppos, buf, len);
+
+	mutex_unlock(&ar->conf_mutex);
+
+	kfree(buf);
+	return ret_cnt;
+}
+
+static const struct file_operations fops_fwinfo_services = {
+	.read = ath10k_read_fwinfo,
+	.open = simple_open,
+	.owner = THIS_MODULE,
+	.llseek = default_llseek,
+};
 
 static void ath10k_debug_fw_stats_pdevs_free(struct list_head *head)
 {
@@ -3031,6 +3067,9 @@ int ath10k_debug_register(struct ath10k *ar)
 
 	debugfs_create_file("wmi_services", S_IRUSR, ar->debug.debugfs_phy, ar,
 			    &fops_wmi_services);
+
+	debugfs_create_file("firmware_info", S_IRUSR, ar->debug.debugfs_phy, ar,
+			    &fops_fwinfo_services);
 
 	debugfs_create_file("set_rates", S_IRUSR, ar->debug.debugfs_phy,
 			    ar, &fops_set_rates);
