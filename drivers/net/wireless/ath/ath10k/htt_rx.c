@@ -1719,8 +1719,10 @@ static void ath10k_htt_rx_frm_tx_compl(struct ath10k *ar,
 		break;
 	}
 
-	ath10k_dbg(ar, ATH10K_DBG_HTT, "htt tx completion num_msdus %d\n",
-		   resp->data_tx_completion.num_msdus);
+	ath10k_dbg(ar, ATH10K_DBG_HTT,
+		   "htt tx completion num_msdus %d status: %d  discard: %d  no-ack: %d\n",
+		   resp->data_tx_completion.num_msdus, status,
+		   (int)tx_done.discard, (int)tx_done.no_ack);
 
 	if (test_bit(ATH10K_FW_FEATURE_TXRATE_CT, ar->fw_features) &&
 	    ar->wmi.op_version != ATH10K_FW_WMI_OP_VERSION_10_4) {
@@ -2125,12 +2127,17 @@ void ath10k_htt_t2h_msg_handler(struct ath10k *ar, struct sk_buff *skb)
 			tx_done.success = true;
 			break;
 		case HTT_MGMT_TX_STATUS_RETRY:
+		case HTT_MGMT_TX_STATUS_TXFILT:
 			tx_done.no_ack = true;
 			break;
 		case HTT_MGMT_TX_STATUS_DROP:
 			tx_done.discard = true;
 			break;
 		}
+
+		ath10k_dbg(ar, ATH10K_DBG_HTT,
+			   "mgmt-tx-completion, status: %d  discard: %d  no-ack: %d\n",
+			   status, (int)tx_done.discard, (int)tx_done.no_ack);
 
 		ath10k_txrx_tx_unref(htt, &tx_done);
 		break;
