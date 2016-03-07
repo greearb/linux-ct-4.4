@@ -5374,6 +5374,29 @@ static void ath10k_bss_info_changed(struct ieee80211_hw *hw,
 	mutex_unlock(&ar->conf_mutex);
 }
 
+static u32 ath10k_calc_ct_scan_flags(struct ath10k *ar,
+				     struct ieee80211_vif *vif)
+{
+	u32 rv = 0;
+
+	if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
+		if (ar->wmi.op_version == ATH10K_FW_WMI_OP_VERSION_10_4) {
+			if (!ath10k_mac_vif_has_any_ht(ar, vif))
+				rv |= WMI_SCAN_DISABLE_HT_4;
+
+			if (!ath10k_mac_vif_has_any_vht(ar, vif))
+				rv |= WMI_SCAN_DISABLE_VHT_4;
+		} else {
+			if (!ath10k_mac_vif_has_any_ht(ar, vif))
+				rv |= WMI_SCAN_DISABLE_HT;
+
+			if (!ath10k_mac_vif_has_any_vht(ar, vif))
+				rv |= WMI_SCAN_DISABLE_VHT;
+		}
+	}
+	return rv;
+}
+
 static int ath10k_hw_scan(struct ieee80211_hw *hw,
 			  struct ieee80211_vif *vif,
 			  struct ieee80211_scan_request *hw_req)
@@ -5414,13 +5437,9 @@ static int ath10k_hw_scan(struct ieee80211_hw *hw,
 	arg.vdev_id = arvif->vdev_id;
 	arg.scan_id = ATH10K_SCAN_ID;
 
+	arg.scan_ctrl_flags |= ath10k_calc_ct_scan_flags(ar, vif);
+
 	if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
-		if (!ath10k_mac_vif_has_any_ht(ar, vif))
-			arg.scan_ctrl_flags |= WMI_SCAN_DISABLE_HT;
-
-		if (!ath10k_mac_vif_has_any_vht(ar, vif))
-			arg.scan_ctrl_flags |= WMI_SCAN_DISABLE_VHT;
-
 		if (test_bit(ATH10K_FW_FEATURE_CT_RATEMASK, ar->fw_features)) {
 			/* Firmware with this feature fixes a bug in firmware
 			 * that would not allow one to disable CCK and OFDM rates.
@@ -6314,13 +6333,7 @@ static int ath10k_remain_on_channel(struct ieee80211_hw *hw,
 	if (ath10k_mac_vif_has_any_ofdm(ar, vif, (1 << chan->band)))
 		arg.scan_ctrl_flags |= WMI_SCAN_ADD_OFDM_RATES;
 
-	if (test_bit(ATH10K_FW_FEATURE_WMI_10X_CT, ar->fw_features)) {
-		if (!ath10k_mac_vif_has_any_ht(ar, vif))
-			arg.scan_ctrl_flags |= WMI_SCAN_DISABLE_HT;
-
-		if (!ath10k_mac_vif_has_any_vht(ar, vif))
-			arg.scan_ctrl_flags |= WMI_SCAN_DISABLE_VHT;
-	}
+	arg.scan_ctrl_flags |= ath10k_calc_ct_scan_flags(ar, vif);
 
 	ret = ath10k_start_scan(ar, &arg);
 	if (ret) {
