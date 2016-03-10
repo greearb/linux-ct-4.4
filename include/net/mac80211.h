@@ -2093,10 +2093,14 @@ static inline void _ieee80211_hw_set(struct ieee80211_hw *hw,
  * struct ieee80211_scan_request - hw scan request
  *
  * @ies: pointers different parts of IEs (in req.ie)
+ * @disable_ht: Ensure nothing related to HT is in the probe request
+ * @disable_vht: Ensure nothing related to VHT is in the probe request
  * @req: cfg80211 request.
  */
 struct ieee80211_scan_request {
 	struct ieee80211_scan_ies ies;
+	bool disable_ht[IEEE80211_NUM_BANDS];
+	bool disable_vht[IEEE80211_NUM_BANDS];
 
 	/* Keep last */
 	struct cfg80211_scan_request req;
