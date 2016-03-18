@@ -66,6 +66,7 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.channel_counters_freq_hz = 88000,
 		.max_probe_resp_desc_thres = 0,
 		.hw_4addr_pad = ATH10K_HW_4ADDR_PAD_AFTER,
+		.cal_data_len = 2116,
 		.fw = {
 			.dir = QCA988X_HW_2_0_FW_DIR,
 			.fw = QCA988X_HW_2_0_FW_FILE,
@@ -103,6 +104,7 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.otp_exe_param = 0,
 		.channel_counters_freq_hz = 88000,
 		.max_probe_resp_desc_thres = 0,
+		.cal_data_len = 8124,
 		.fw = {
 			.dir = QCA6174_HW_2_1_FW_DIR,
 			.fw = QCA6174_HW_2_1_FW_FILE,
@@ -122,6 +124,7 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.channel_counters_freq_hz = 88000,
 		.max_probe_resp_desc_thres = 0,
 		.hw_4addr_pad = ATH10K_HW_4ADDR_PAD_AFTER,
+		.cal_data_len = 8124,
 		.fw = {
 			.dir = QCA6174_HW_3_0_FW_DIR,
 			.fw = QCA6174_HW_3_0_FW_FILE,
@@ -141,6 +144,7 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.channel_counters_freq_hz = 88000,
 		.max_probe_resp_desc_thres = 0,
 		.hw_4addr_pad = ATH10K_HW_4ADDR_PAD_AFTER,
+		.cal_data_len = 8124,
 		.fw = {
 			/* uses same binaries as hw3.0 */
 			.dir = QCA6174_HW_3_0_FW_DIR,
@@ -167,6 +171,7 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.tx_chain_mask = 0xf,
 		.rx_chain_mask = 0xf,
 		.max_spatial_stream = 4,
+		.cal_data_len = 12064,
 		.fw = {
 			.dir = QCA99X0_HW_2_0_FW_DIR,
 			.fw = QCA99X0_HW_2_0_FW_FILE,
@@ -185,6 +190,7 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.otp_exe_param = 0,
 		.channel_counters_freq_hz = 88000,
 		.max_probe_resp_desc_thres = 0,
+		.cal_data_len = 8124,
 		.fw = {
 			.dir = QCA9377_HW_1_0_FW_DIR,
 			.fw = QCA9377_HW_1_0_FW_FILE,
@@ -203,6 +209,7 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.otp_exe_param = 0,
 		.channel_counters_freq_hz = 88000,
 		.max_probe_resp_desc_thres = 0,
+		.cal_data_len = 8124,
 		.fw = {
 			.dir = QCA9377_HW_1_0_FW_DIR,
 			.fw = QCA9377_HW_1_0_FW_FILE,
@@ -228,6 +235,7 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.tx_chain_mask = 0x3,
 		.rx_chain_mask = 0x3,
 		.max_spatial_stream = 2,
+		.cal_data_len = 12064,
 		.fw = {
 			.dir = QCA4019_HW_1_0_FW_DIR,
 			.fw = QCA4019_HW_1_0_FW_FILE,
@@ -543,7 +551,7 @@ static int ath10k_download_cal_dt(struct ath10k *ar, const char *dt_name)
 		return -ENOENT;
 	}
 
-	if (data_len != QCA988X_CAL_DATA_LEN) {
+	if (data_len != ar->hw_params.cal_data_len) {
 		ath10k_warn(ar, "invalid calibration data length in DT: %d\n",
 			    data_len);
 		ret = -EMSGSIZE;
