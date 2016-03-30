@@ -850,6 +850,7 @@ struct ath10k {
 	const void *firmware_data;
 	size_t firmware_len;
 
+	const struct firmware *pre_cal_file;
 	const struct firmware *cal_file;
 
 	const struct firmware *fwcfg_file;
