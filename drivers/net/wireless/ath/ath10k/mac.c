@@ -807,6 +807,8 @@ static void ath10k_peer_cleanup(struct ath10k *ar, u32 vdev_id)
 
 		for_each_set_bit(peer_id, peer->peer_ids,
 				 ATH10K_MAX_NUM_PEER_IDS) {
+			ath10k_warn(ar, "removing peer mapping %pM peer-id: %d\n",
+				    peer->addr, peer_id);
 			ar->peer_map[peer_id] = NULL;
 		}
 
@@ -817,6 +819,24 @@ static void ath10k_peer_cleanup(struct ath10k *ar, u32 vdev_id)
 	spin_unlock_bh(&ar->data_lock);
 }
 
+void ath10k_dump_peer_info(struct ath10k *ar)
+{
+	struct ath10k_peer *peer;
+	int peer_id;
+
+	lockdep_assert_held(&ar->data_lock);
+
+	list_for_each_entry(peer, &ar->peers, list) {
+		ath10k_warn(ar, "peer: %p vdev: %d  addr: %pM\n",
+			    peer, peer->vdev_id, peer->addr);
+		for_each_set_bit(peer_id, peer->peer_ids,
+				 ATH10K_MAX_NUM_PEER_IDS) {
+			ath10k_warn(ar, "  peer %pM peer-id: %d\n",
+				    peer->addr, peer_id);
+		}
+	}
+}
+
 static void ath10k_peer_cleanup_all(struct ath10k *ar)
 {
 	struct ath10k_peer *peer, *tmp;
@@ -825,6 +845,8 @@ static void ath10k_peer_cleanup_all(struct ath10k *ar)
 
 	spin_lock_bh(&ar->data_lock);
 	list_for_each_entry_safe(peer, tmp, &ar->peers, list) {
+		ath10k_warn(ar, "removing peer, cleanup-all, deleting: peer %p vdev: %d addr: %pM \n",
+			    peer, peer->vdev_id, peer->addr);
 		list_del(&peer->list);
 		kfree(peer);
 	}
@@ -4258,6 +4280,7 @@ void ath10k_mac_tx_push_pending(struct ath10k *ar)
 	struct ath10k_txq *last;
 	int ret;
 	int max;
+	int loop_max = 2000;
 
 	spin_lock_bh(&ar->txqs_lock);
 	rcu_read_lock();
@@ -4267,6 +4290,11 @@ void ath10k_mac_tx_push_pending(struct ath10k *ar)
 		artxq = list_first_entry(&ar->txqs, struct ath10k_txq, list);
 		txq = container_of((void *)artxq, struct ieee80211_txq,
 				   drv_priv);
+
+		if (--loop_max == 0) {
+			ath10k_err(ar, "Looped 2000 times in tx_push_pending, bailing out.\n");
+			break;
+		}
 
 		/* Prevent aggressive sta/tid taking over tx queue */
 		max = 16;
@@ -4280,6 +4308,8 @@ void ath10k_mac_tx_push_pending(struct ath10k *ar)
 		list_del_init(&artxq->list);
 		if (ret != -ENOENT)
 			list_add_tail(&artxq->list, &ar->txqs);
+		else if (artxq == last)
+			last = list_last_entry(&ar->txqs, struct ath10k_txq, list);
 
 		ath10k_htt_tx_txq_update(hw, txq);
 
@@ -5509,8 +5539,8 @@ static void ath10k_remove_interface(struct ieee80211_hw *hw,
 			continue;
 
 		if (peer->vif == vif) {
-			ath10k_warn(ar, "found vif peer %pM entry on vdev %i after it was supposedly removed\n",
-				    vif->addr, arvif->vdev_id);
+			ath10k_warn(ar, "found vif peer %pM id: %d entry on vdev %i after it was supposedly removed\n",
+				    vif->addr, i, arvif->vdev_id);
 			peer->vif = NULL;
 		}
 	}
@@ -6431,8 +6461,8 @@ static int ath10k_sta_state(struct ieee80211_hw *hw,
 				continue;
 
 			if (peer->sta == sta) {
-				ath10k_warn(ar, "found sta peer %pM entry on vdev %i after it was supposedly removed\n",
-					    sta->addr, arvif->vdev_id);
+				ath10k_warn(ar, "found sta peer %pM id: %d entry on vdev %i after it was supposedly removed\n",
+					    sta->addr, i, arvif->vdev_id);
 				peer->sta = NULL;
 			}
 		}
