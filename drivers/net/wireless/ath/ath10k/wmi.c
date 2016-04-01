@@ -5821,7 +5821,8 @@ static struct sk_buff *ath10k_wmi_10_4_op_gen_init(struct ath10k *ar)
 #endif
 	}
 	config.num_msdu_desc = __cpu_to_le32(ar->htt.max_num_pending_tx);
-	ath10k_warn(ar, "msdu-desc: %d\n", ar->htt.max_num_pending_tx);
+	ath10k_warn(ar, "msdu-desc: %d  skid: %d\n",
+		    ar->htt.max_num_pending_tx, ar->skid_limit);
 	config.ast_skid_limit = __cpu_to_le32(ar->skid_limit);
 
 	/* Firmware will crash if this is not even multiple of 8 */
@@ -5836,8 +5837,6 @@ static struct sk_buff *ath10k_wmi_10_4_op_gen_init(struct ath10k *ar)
 	config.num_offload_peers = __cpu_to_le32(TARGET_10_4_NUM_OFFLOAD_PEERS);
 	config.num_offload_reorder_buffs =
 			__cpu_to_le32(TARGET_10_4_NUM_OFFLOAD_REORDER_BUFFS);
-	config.num_peer_keys  = __cpu_to_le32(TARGET_10_4_NUM_PEER_KEYS);
-	config.ast_skid_limit = __cpu_to_le32(TARGET_10_4_AST_SKID_LIMIT);
 
 	config.rx_timeout_pri[0] = __cpu_to_le32(TARGET_10_4_RX_TIMEOUT_LO_PRI);
 	config.rx_timeout_pri[1] = __cpu_to_le32(TARGET_10_4_RX_TIMEOUT_LO_PRI);
