@@ -66,6 +66,7 @@
 
 static const struct rhashtable_params sta_rht_params = {
 	.nelem_hint = 3, /* start small */
+	.insecure_elasticity = true, /* Disable chain-length checks. */
 	.automatic_shrinking = true,
 	.head_offset = offsetof(struct sta_info, hash_node),
 	.key_offset = offsetof(struct sta_info, addr),
@@ -321,8 +322,11 @@ static int sta_info_hash_add(struct ieee80211_local *local,
 
 	int rv = rhashtable_insert_fast(&local->sta_hash, &sta->hash_node,
 			       sta_rht_params);
-	if (rv != 0)
+	if (rv != 0) {
+		pr_err("Failed to insert sta %pM in rhashtable, idx: %d  err: %d\n",
+		       sta->sta.addr, idx, rv);
 		return rv;
+	}
 
 	sta->vnext = sta->sdata->sta_vhash[idx];
 	rcu_assign_pointer(sta->sdata->sta_vhash[idx], sta);
