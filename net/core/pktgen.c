@@ -500,6 +500,7 @@ static int pg_populate_report(struct pktgen_dev_report* rpt, struct pktgen_dev* 
 		rpt->latency_bkts[i] = pkt_dev->latency_bkts[i];
 	}
 	rpt->running_jitter = pkt_dev->running_jitter / 1024;
+	rpt->burst = pkt_dev->burst;
 	rpt->pkts_rcvd_since_clear_lat = pkt_dev->pkts_rcvd_since_clear_lat;
 	rpt->total_lat = pkt_dev->total_lat;
 
