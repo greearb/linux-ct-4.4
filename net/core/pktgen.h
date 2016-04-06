@@ -15,7 +15,7 @@
 /* The buckets are exponential in 'width' */
 #define LAT_BUCKETS_MAX 32
 #define PG_MAX_ACCUM_DELAY_NS (50 * 1000) /* 50 us */
-#define PG_TRY_TX_ANYWAY_NS 100000 /* try a blocked tx queue after 100 us. */
+#define PG_TRY_TX_ANYWAY_NS 50000 /* try a blocked tx queue after 50 us. */
 
 #define IP_NAME_SZ 32
 #define MAX_MPLS_LABELS 16 /* This is the max label stack depth */
