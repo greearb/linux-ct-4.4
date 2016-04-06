@@ -4143,6 +4143,7 @@ static void pktgen_xmit(struct pktgen_dev *pkt_dev, u64 now)
 	struct netdev_queue *txq;
 	u16 queue_map;
 	int ret;
+	unsigned long burst_sofar_ns = 0;
 
 	/* printk("pktgen_xmit, pkt_dev: %s  now: %llu\n", pkt_dev->ifname, now); */
 
@@ -4261,6 +4262,7 @@ static void pktgen_xmit(struct pktgen_dev *pkt_dev, u64 now)
 		}
 	retry_now:
 		ret = netdev_start_xmit(pkt_dev->skb, odev, txq, --burst > 0);
+		burst_sofar_ns += pkt_dev->delay_ns;
 		/* printk("%s tx skb, rv: %i  s: %llu  c: %llu\n",
 		 *      pkt_dev->ifname, ret, pkt_dev->sofar, pkt_dev->count);
 		 */
@@ -4271,9 +4273,11 @@ static void pktgen_xmit(struct pktgen_dev *pkt_dev, u64 now)
 			pkt_dev->tx_bytes += pkt_dev->last_pkt_size;
 			pkt_dev->tx_bytes_ll += pkt_dev->last_pkt_size + 24; /* pre-amble, frame gap, crc */
 			pkt_dev->tx_blocked = 0;
-			if (burst > 0 && !netif_xmit_frozen_or_drv_stopped(txq))
-				goto retry_now;
-			pkt_dev->next_tx_ns = getRelativeCurNs() + pkt_dev->delay_ns;
+			if (burst > 0 && !netif_xmit_frozen_or_drv_stopped(txq)) {
+				if (burst_sofar_ns < PG_MAX_ACCUM_DELAY_NS)
+					goto retry_now;
+			}
+			pkt_dev->next_tx_ns = getRelativeCurNs() + burst_sofar_ns;
 			break;
 		case NETDEV_TX_LOCKED:
 			cpu_relax();
