@@ -2229,7 +2229,10 @@ int ath10k_core_start(struct ath10k *ar, enum ath10k_firmware_mode mode)
 		goto err_hif_stop;
 	}
 
-	ar->free_vdev_map = (1LL << ar->max_num_vdevs) - 1;
+	if (ar->max_num_vdevs >= 64)
+		ar->free_vdev_map = 0xFFFFFFFFFFFFFFFFLL;
+	else
+		ar->free_vdev_map = (1LL << ar->max_num_vdevs) - 1;
 
 	INIT_LIST_HEAD(&ar->arvifs);
 
@@ -2293,13 +2296,6 @@ int ath10k_core_start(struct ath10k *ar, enum ath10k_firmware_mode mode)
 			ath10k_wmi_pdev_set_special(ar, SET_SPECIAL_ID_RC_MAX_PER_THR,
 						    ar->eeprom_overrides.rc_rate_max_per_thr);
 	}
-
-	if (ar->max_num_vdevs >= 64)
-		ar->free_vdev_map = 0xFFFFFFFFFFFFFFFFLL;
-	else
-		ar->free_vdev_map = (1LL << ar->max_num_vdevs) - 1;
-
-	INIT_LIST_HEAD(&ar->arvifs);
 
 	return 0;
 
