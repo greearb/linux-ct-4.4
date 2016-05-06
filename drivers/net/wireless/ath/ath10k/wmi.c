@@ -5561,11 +5561,6 @@ static struct sk_buff *ath10k_wmi_10_1_op_gen_init(struct ath10k *ar)
 		config.roam_offload_max_vdev = 0; /* disable roaming */
 		config.roam_offload_max_ap_profiles = 0; /* disable roaming */
 
-		/* Disable beacon-miss logic, old code had it at 2 vdevs, which is not
-		 * nearly enough for us anyway..
-		 */
-		config.bmiss_offload_max_vdev = 0;
-
 		config.num_peer_keys = __cpu_to_le32(TARGET_10X_NUM_PEER_KEYS_CT);
 
 		if (ar->num_ratectrl_objs) {
