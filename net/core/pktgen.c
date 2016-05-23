@@ -3170,7 +3170,7 @@ static struct sk_buff *pktgen_alloc_skb(struct net_device *dev,
 {
 	struct sk_buff *skb = NULL;
 	unsigned int size = pkt_dev->cur_pkt_size + 64 + extralen +
-			    pkt_dev->pkt_overhead;
+			    pkt_dev->pkt_overhead + LL_RESERVED_SPACE(pkt_dev->odev);
 
 	if (pkt_dev->flags & F_NODE) {
 		int node = pkt_dev->node >= 0 ? pkt_dev->node : numa_node_id();
@@ -3862,6 +3862,8 @@ static void pktgen_run(struct pktgen_thread *t)
 				pkt_dev->started_at = getCurUs();
 				/* Transmit first pkt after 20ms to let listener get started. */
 				pkt_dev->next_tx_ns = getRelativeCurNs() + 20 * 1000000;
+
+				set_pkt_overhead(pkt_dev);
 
 				strcpy(pkt_dev->result, "Starting");
 				started++;
