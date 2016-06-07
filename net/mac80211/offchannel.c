@@ -365,6 +365,8 @@ void ieee80211_sw_roc_work(struct work_struct *work)
 		 */
 		roc->on_channel = roc->chan == local->_oper_chandef.chan &&
 				  local->_oper_chandef.width != NL80211_CHAN_WIDTH_5 &&
+				  local->_oper_chandef.width != NL80211_CHAN_WIDTH_5_NOHT &&
+				  local->_oper_chandef.width != NL80211_CHAN_WIDTH_10_NOHT &&
 				  local->_oper_chandef.width != NL80211_CHAN_WIDTH_10;
 
 		/* start this ROC */
