@@ -5770,11 +5770,6 @@ enum wmi_peer_param {
 	WMI_PEER_NSS        = 0x5,
 	WMI_PEER_USE_4ADDR  = 0x6,
 	WMI_PEER_DUMMY_VAR  = 0xff, /* dummy parameter for STA PS workaround */
-	WMI_PEER_FETCH_RC   = 0x10 /* Fetch rate-ctrl cache from host via DMA
-				    * Call this before setting rate-ctrl logic so that
-				    * firmware will have the firmware data in it's cache.
-				    * It is racy, but better than nothing.
-				    */
 };
 
 struct wmi_peer_set_param_cmd {
