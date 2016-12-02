@@ -1991,6 +1991,12 @@ static int ath10k_core_init_firmware_features(struct ath10k *ar)
 		}
 		ar->fw_stats_req_mask = WMI_STAT_PEER;
 		ar->max_spatial_stream = WMI_MAX_SPATIAL_STREAM;
+
+		if (test_bit(WMI_SERVICE_PEER_STATS, ar->wmi.svc_map)) {
+			ar->num_tids = TARGET_10X_TX_STATS_NUM_TIDS;
+		} else {
+			ar->num_tids = TARGET_10X_NUM_TIDS;
+		}
 		break;
 	case ATH10K_FW_WMI_OP_VERSION_10_2:
 	case ATH10K_FW_WMI_OP_VERSION_10_2_4:

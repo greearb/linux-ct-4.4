@@ -5547,6 +5547,10 @@ static struct sk_buff *ath10k_wmi_10_1_op_gen_init(struct ath10k *ar)
 
 	config.num_vdevs = __cpu_to_le32(ar->max_num_vdevs);
 	config.num_peers = __cpu_to_le32(ar->max_num_peers);
+
+	ath10k_warn(ar, "10.1 wmi init: vdevs: %d  peers: %d  tid: %d\n",
+		    ar->max_num_vdevs, ar->max_num_peers, ar->num_tids);
+
 	config.tx_chain_mask = __cpu_to_le32(TARGET_10X_TX_CHAIN_MASK);
 
 	config.roam_offload_max_vdev =
@@ -5595,11 +5599,7 @@ static struct sk_buff *ath10k_wmi_10_1_op_gen_init(struct ath10k *ar)
 			   ar->htt.max_num_pending_tx);
 	}
 
-	if (test_bit(WMI_SERVICE_PEER_STATS, ar->wmi.svc_map)) {
-		config.num_tids = __cpu_to_le32(TARGET_10X_TX_STATS_NUM_TIDS);
-	} else {
-		config.num_tids = __cpu_to_le32(TARGET_10X_NUM_TIDS);
-	}
+	config.num_tids = __cpu_to_le32(ar->num_tids);
 	config.rx_chain_mask = __cpu_to_le32(TARGET_10X_RX_CHAIN_MASK);
 	config.rx_timeout_pri_vo = __cpu_to_le32(TARGET_10X_RX_TIMEOUT_LO_PRI);
 	config.rx_timeout_pri_vi = __cpu_to_le32(TARGET_10X_RX_TIMEOUT_LO_PRI);
