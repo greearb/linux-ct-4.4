@@ -8419,6 +8419,13 @@ int ath10k_copy_comb(struct ath10k* ar,
 	return 0;
 }
 
+/* Force over-ride const logic in core so we don't have to patch core. */
+#define ATH_ASSIGN_CONST_U16(a,b)                   \
+   do {                                             \
+      u16* __val_p = (u16*)(&(a));                  \
+      *__val_p = b;                                 \
+   } while (0)
+
 int ath10k_mac_register(struct ath10k *ar)
 {
 	static const u32 cipher_suites[] = {
@@ -8598,7 +8605,7 @@ int ath10k_mac_register(struct ath10k *ar)
 			if (ret != 0)
 				goto err_free;
 
-			ar->if_comb[0].limits[0].max = ar->max_num_vdevs;
+			ATH_ASSIGN_CONST_U16(ar->if_comb[0].limits[0].max, ar->max_num_vdevs);
 			ar->if_comb[0].max_interfaces = ar->max_num_vdevs;
 
 			ar->hw->wiphy->interface_modes |= BIT(NL80211_IFTYPE_ADHOC);
@@ -8620,7 +8627,7 @@ int ath10k_mac_register(struct ath10k *ar)
 			if (ret != 0)
 				goto err_free;
 
-			ar->if_comb[0].limits[0].max = ar->max_num_vdevs;
+			ATH_ASSIGN_CONST_U16(ar->if_comb[0].limits[0].max, ar->max_num_vdevs);
 			ar->if_comb[0].max_interfaces = ar->max_num_vdevs;
 
 			ar->hw->wiphy->interface_modes |= BIT(NL80211_IFTYPE_ADHOC);
@@ -8641,11 +8648,11 @@ int ath10k_mac_register(struct ath10k *ar)
 			if (ret != 0)
 				goto err_free;
 
-			ar->if_comb[0].limits[0].max = ar->max_num_vdevs;
+			ATH_ASSIGN_CONST_U16(ar->if_comb[0].limits[0].max, ar->max_num_vdevs);
 			ar->if_comb[0].max_interfaces = ar->max_num_vdevs;
 
 			if (ar->if_comb[0].limits[1].max > ar->max_num_vdevs)
-				ar->if_comb[0].limits[1].max = ar->max_num_vdevs;
+				ATH_ASSIGN_CONST_U16(ar->if_comb[0].limits[1].max, ar->max_num_vdevs);
 
 			ar->hw->wiphy->interface_modes |= BIT(NL80211_IFTYPE_ADHOC);
 
